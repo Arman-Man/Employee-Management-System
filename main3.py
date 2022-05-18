@@ -8,7 +8,7 @@ def main():
 
     print('Welcome to Employee Management System (EMS)')
 
-    load(employeeDict, filename)
+    employeeDict = load(filename)
 
     while userInput != '10':
         #menu
@@ -168,7 +168,9 @@ def deleteEmployee(database,EID):
     else:
         print('Employee ID: {} was not found in the database.'.format(EID))
 
+
 #'5'
+#this still isn't correct
 def displayStatistics(database):
     totalEmployees = 0
     numDepartments = 0
@@ -236,8 +238,9 @@ def displayEmployees(database):
             print('\tSalary:', format(float(sortedByKeyDict[EID]['employeeSalary']), ',.2f'))
             count += 1
 
+
         if count == 1:
-            print('There is 1 employee in the database.')
+           print('There is 1 employee in the database.')
         else:
             print('There are {} employees in the database.'.format(count))
     else:
@@ -245,24 +248,30 @@ def displayEmployees(database):
 
 
 #'7'
-def backupDatabase(database):
-    found = False
-    while found == False:
-        filename = input('Enter a backup filename (should end with .csv) or QUIT to stop:\n')
-        if filename.upper() == "QUIT":
-            return
-        try:
-            output_file = open(filename, 'w')
-            found = True
-        except FileNotFoundError:
-            print("File {} does not exist".format(filename))
-
+def backupDatabase(database):  
+    fields = ['EID', 'null', 'null', 'null', 'null'] 
+    
+    tempList = list()
     for key in database:
-        output_file.write(key, 1)
+        tempList.append([key, database[key]['employeeName'], database[key]['employeeDept'], database[key]['employeeTitle'], database[key]['employeeSalary']])    
 
-    print('Successfully backed up the database to the CSV file {}.csv.'.format(filename))
-    output_file.close()
+    filename = input('Enter a backup filename (should end with .csv) or QUIT to stop:\n')
 
+    if filename.upper() == "QUIT":
+        return
+    
+    # writing to csv file 
+    with open(filename, 'w') as csvfile: 
+        # creating a csv writer object 
+        csvwriter = csv.writer(csvfile, lineterminator = '\n') 
+        
+        # writing the fields 
+        csvwriter.writerow(fields) 
+        
+        # writing the data rows 
+        csvwriter.writerows(tempList)
+
+    print('Successfully backed up the database to CSV file backup.csv.')
 
 
 #'8'
@@ -283,24 +292,29 @@ def restoreDatabase(database):
 
     reader = csv.reader(input_file)
     for row in reader:
-        database[row[0]] = {'employeeName':row[1], 'employeeDept':row[2], 'employeeTitle':row[3], 'employeeSalary':row[4]}
-        # row[0] is the EID, everything is the same order as the main dictionary
+        try:
+            testVar = int(row[0])
+            database[row[0]] = {'employeeName':row[1], 'employeeDept':row[2], 'employeeTitle':row[3], 'employeeSalary':row[4]}
+            # row[0] is the EID, everything is the same order as the main dictionary
+        except:
+            pass
 
-    print('Successfully restored the database from CSV file {}.csv.'.format(filename))
+    print('Successfully restored the database from CSV file {}.'.format(filename))
     input_file.close()
 
 
 #'9'
 def purgeDatabase(database):
     if database != dict():
-        userInput = input('Enter y/n to confirm deletion of database\n')
+        userInput = input('All employees will be deleted from the database. Are you sure (y/n)?\n')
         if userInput.upper() == 'Y':
             database.clear()
+            print('Employee database was purged.')
     else:
-        print('Employee database is empty.')
+        print('Employee database is already empty.')
 
 
-def load(database, filename):
+def load(filename):
     found = False
     try:
         input_file = open(filename,'rb')
@@ -309,13 +323,13 @@ def load(database, filename):
         print('Unable to load the database from binary file {}.'.format(filename))
         print('Creating an empty database.')
 
-    if found:
-        dictVar = pickle.load(input_file)
-        database = dictVar
-        input_file.close()
+    if not found:
+        return dict()
     else:
-        database.clear()
-        
+        dictVar = pickle.load(input_file)
+        input_file.close()
+        return dictVar
+
 
 def save(database, filename):
     output_file = open(filename, 'wb')
