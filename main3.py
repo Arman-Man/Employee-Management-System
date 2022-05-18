@@ -152,60 +152,88 @@ def findEmployeeName(database,name):
 
 #'4'
 def deleteEmployee(database,EID):
-
-    boolVar = False
     for key in database:
-        if EID == key:
-            boolVar = True
+        if key == EID:
+            userInput = input('Enter y/n to confirm deletion of {}'.format(EID))
+            if userInput.upper() == 'Y':
+                database.pop(EID)
+                return
 
-    if boolVar == True:
-        for key in database:
-            if EID == key:
-                userInput = input('Enter y/n to confirm deletion of {}\n'.format(EID))
-                if userInput.upper() == 'Y':
-                    database.pop(EID)
-        return
-    else:
-        print('Employee ID: {} was not found in the database.'.format(EID))
+    print('Employee ID: {} was not found in the database.'.format(EID))
 
 
 #'5'
-#this still isn't correct
 def displayStatistics(database):
     totalEmployees = 0
-    numDepartments = 0
-    deptDict = dict()
+    totalDepartments = 0
+    deptDict = dict() #contains dept and num employees per department
 
+    #creates a deptDict in the form of: {deptKey:{'numEmployees':num}, deptKey:{'numEmployees':num}}
     for key in database: #each key in database is an EID
         if deptDict != dict(): #makes sure deptDict isnt empty
             boolVar = False
             for dept in deptDict: 
                 if database[key]['employeeDept'] == dept: #so the key for deptDict is the dept, but for database its EID
-                    deptDict[dept] = deptDict[dept] + 1 #increasing employee number by 1
+                    deptDict[dept] = {'numEmployees':deptDict[dept]['numEmployees'] + 1} #increasing employee number by 1
                     totalEmployees += 1
                     boolVar = True
 
+            #database isnt empty, but the dept wasnt found
             if boolVar == False:
-                deptDict[database[key]['employeeDept']] = 1 #creates a new key-value pair
-                numDepartments += 1
+                deptDict[database[key]['employeeDept']] = {'numEmployees':1} #creates a new key-value pair
+                totalDepartments += 1
                 totalEmployees += 1
 
         else: #if it is empty, add this first entry
-            deptDict[database[key]['employeeDept']] = 1 #creates a new key-value pair
-            numDepartments += 1
+            deptDict[database[key]['employeeDept']] = {'numEmployees':1} #creates a new key-value pair
+            totalDepartments += 1
             totalEmployees += 1
 
-    print('Department Statistics:')
+    #print(deptDict)
 
+    #changes deptDict to the form of: {deptKey:{'numEmployees':num, 'max':max, 'min':min, 'avg':avg}, deptKey:{'numEmployees':num, 'max':max, 'min':min, 'avg':avg}}
+
+    # current error: does not work if multiple employees in a department
+    
+    for dept in deptDict:
+        deptMax = 0.0
+        deptMin = 0.0
+        deptAvg = 0.0
+        avgCount = 0
+        for key in database:
+            if database[key]['employeeDept'] == dept:
+                if float(database[key]['employeeSalary']) > deptMax:
+                    deptMax = float(database[key]['employeeSalary']) 
+
+                if deptMin == 0:
+                    deptMin = float(database[key]['employeeSalary'])
+                elif float(database[key]['employeeSalary']) < deptMin:
+                    deptMin = float(database[key]['employeeSalary'])
+
+                deptAvg += float(database[key]['employeeSalary'])
+                avgCount += 1
+        deptAvg = deptAvg/avgCount
+        deptDict[dept] = {'numEmployees':deptDict[dept]['numEmployees'], 'deptMax':deptMax, 'deptMin':deptMin, 'deptAvg':deptAvg}
+        
+
+    print('Department Statistics:')
+    
+    
     for key in deptDict:
-        if deptDict[key] > 1:
-            print('\tDepartment: {} - {} employees'.format(key, deptDict[key]))
-        elif deptDict[key] == 1:
+        if deptDict[key]['numEmployees'] > 1:
+            print('\tDepartment: {} - {} employees'.format(key, deptDict[key]['numEmployees']))
+        elif deptDict[key]['numEmployees'] == 1:
             print('\tDepartment: {} - 1 employee'.format(key))
 
-    if numDepartments > 1:
-        print('There are {} departments in the database.'.format(numDepartments))
-    elif numDepartments == 1:
+        print('\t\tMaximum Salary: $', format(deptDict[key]['deptMax'], ',.2f'))
+        print('\t\tMinimum Salary: $', format(deptDict[key]['deptMin'], ',.2f'))
+        print('\t\tAverage Salary: $', format(deptDict[key]['deptAvg'], ',.2f'))
+    
+
+
+    if totalDepartments > 1:
+        print('There are {} departments in the database.'.format(totalDepartments))
+    elif totalDepartments == 1:
         print('There is 1 department in the database.')
     else:
         print('There are 0 departments in the database.')
@@ -216,6 +244,7 @@ def displayStatistics(database):
         print('There is 1 employee in the database.')
     else:
         print('There are 0 employees in the database.')
+
 
 
 
