@@ -1,6 +1,6 @@
 # Employee-Management-System
 
-Create and manage an employee database. Run statistical analysis on departments and employees.
+Create and manage an employee database. Add/remove employees by identification number. Options to save, load and delete the database. Run statistical analysis on departments and employees.
 
 Functions:
 - Add/remove employees
